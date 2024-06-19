@@ -1,54 +1,104 @@
-// ---------toggle icon navbar----//
-let menuIcon = document.querySelector('#menu-icon');
-let navbar = document.querySelector('.navbar');
+// JavaScript variables
+let board = ['', '', '', '', '', '', '', '', '']; // Represents the tic-tac-toe board
+let currentPlayer = 'X'; // 'X' starts the game
+const cells = Array.from(document.querySelectorAll('.cell'));
+const resetButton = document.getElementById('reset-button');
+const message = document.getElementById('message');
 
-menuIcon.onclick = () => {
-    menuIcon.classList.toggle('bx-x');
-    navbar.classList.toggle('active');
-};
+// Function to handle a player's move
+function handleMove(cellClicked, cellIndex) {
+    // Check if the cell is already clicked or if the game is over
+    if (board[cellIndex] !== '' || checkWin() !== null) {
+        return;
+    }
+    
+    // Update board array and UI
+    board[cellIndex] = currentPlayer;
+    cellClicked.textContent = currentPlayer;
+    cellClicked.classList.add('occupied');
+    
+    // Check for a winner
+    const winner = checkWin();
+    if (winner !== null) {
+        message.textContent = `Player ${winner} wins!`;
+        highlightWinningCells();
+        disableBoard();
+        return;
+    }
+    
+    // Check for a draw
+    if (!board.includes('')) {
+        message.textContent = 'It\'s a draw!';
+        disableBoard();
+        return;
+    }
+    
+    // Switch players
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    message.textContent = `Player ${currentPlayer}'s turn`;
+}
 
-document.addEventListener('DOMContentLoaded', function () {
-    let sections = document.querySelectorAll('section');
-    let navLinks = document.querySelectorAll('header nav a');
+// Function to check for a winner
+function checkWin() {
+    const winConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+        [0, 4, 8], [2, 4, 6] // Diagonals
+    ];
 
-    window.addEventListener('scroll', () => {
-        let scrollY = window.scrollY;
+    for (let condition of winConditions) {
+        const [a, b, c] = condition;
+        if (board[a] !== '' && board[a] === board[b] && board[a] === board[c]) {
+            return board[a];
+        }
+    }
 
-        sections.forEach(section => {
-            let sectionTop = section.offsetTop - 150;
-            let sectionHeight = section.offsetHeight;
-            let sectionId = section.getAttribute('id');
+    return null; // No winner
+}
 
-            if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                });
+// Function to highlight winning cells
+function highlightWinningCells() {
+    const winConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+        [0, 4, 8], [2, 4, 6] // Diagonals
+    ];
 
-                // Use attribute selector with quotes
-                document.querySelector(header nav a[href="#${sectionId}"]).classList.add('active');
-            }
-        });
+    for (let condition of winConditions) {
+        const [a, b, c] = condition;
+        if (board[a] !== '' && board[a] === board[b] && board[a] === board[c]) {
+            // Highlight winning cells
+            cells[a].classList.add('win');
+            cells[b].classList.add('win');
+            cells[c].classList.add('win');
+            break;
+        }
+    }
+}
 
-        // --------------toggle sticky header-----------//
-        let header = document.querySelector('header');
-        header.classList.toggle('sticky', scrollY > 100);
+// Function to disable the board after game over
+function disableBoard() {
+    cells.forEach(cell => {
+        cell.classList.add('disabled');
+    });
+}
 
-        // --------------remove toggle icon and navbar-----------//
-        menuIcon.classList.remove('bx-x');
-        navbar.classList.remove('active');
+// Function to reset the game
+function resetGame() {
+    board = ['', '', '', '', '', '', '', '', ''];
+    currentPlayer = 'X';
+    cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('occupied', 'win', 'disabled');
+    });
+    message.textContent = `Player ${currentPlayer}'s turn`;
+}
+
+// Event listeners
+cells.forEach((cell, index) => {
+    cell.addEventListener('click', () => {
+        handleMove(cell, index);
     });
 });
 
-// scroll reaveal//
-
-ScrollReveal ({
-    // reset:true,
-    distance:'80px',
-    duration:2000,
-    delay:200
-});
-
-ScrollReveal().reveal('.home-content , .heading' ,{origin: 'top'});
-ScrollReveal().reveal('.home-img, .Skill-container ,.Project-box,Contact form',{origin: 'bottom'});
-ScrollReveal().reveal('.home-content h1, .about-img' ,{origin: 'left'});
-ScrollReveal().reveal('.home-content p, .about-content' ,{origin: 'right'});
+resetButton.addEventListener('click', resetGame);
